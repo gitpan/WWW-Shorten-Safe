@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               WWW-Shorten-Safe
-version:            1.0
-abstract:           Interface to shortening URLs using L<http://safe.mn/>
+version:            1.1
+abstract:           Interface to shortening URLs using L<http://safe.mn/>, L<http://clic.gs/>, L<http://go2.gs/> or L<http://cliks.fr/>.
 author:
     - Julien Sobrier <jsobrier@safe.mn>
 license:            perl

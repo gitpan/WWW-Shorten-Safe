@@ -42,7 +42,7 @@ BEGIN {
 
 =head1 SYNOPSIS
 
-WWW::Shorten::Safe provides an easy interface for shortening URLs using L<http://safe.mn/>, L<http://clic.gs/>, L<http://go2.gs/> or L<http://cliks.fr/>.
+WWW::Shorten::Safe provides an easy interface for shortening URLs using http://safe.mn/, http://clic.gs/, http://go2.gs/ or http://cliks.fr/. 
 
 
     use WWW::Shorten::Safe;
