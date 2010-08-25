@@ -11,6 +11,8 @@ use Carp;
 
 use base qw( WWW::Shorten::generic Exporter );
 
+use XML::Simple;
+
 require Exporter;
 
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -28,14 +30,11 @@ WWW::Shorten::Safe - Interface to shortening URLs using L<http://safe.mn/>, L<ht
 
 =head1 VERSION
 
-$Revision: 1.1 $
+$Revision: 1.20 $
 
 =cut
 
-BEGIN {
-    our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/g); sprintf "%1d."."%02d" x $#r, @r }; # must be all one line, for MakeMaker
-    $WWW::Shorten::Safe::VERBOSITY = 2;
-}
+our $VERSION = '1.20';
 
 # ------------------------------------------------------------
 
@@ -104,7 +103,7 @@ default: safe.mn
 sub new {
     my ($class, %args) = @_;
     $args{source} ||= "perlteknatussafe";
-    $args{domain} || 'safe.mn'; 
+    $args{domain} ||= 'safe.mn';
 
 
     my $safe = {
@@ -113,7 +112,7 @@ sub new {
     };
 
     bless $safe, $class;
-    return $class;
+#     return $class;
 }
 
 
@@ -148,7 +147,7 @@ safe.mn by default
 sub makeashorterlink #($;%)
 {
     my $url = shift or croak('No URL passed to makeashorterlink');
-    my $domain = shift || 'safe.mn'
+    my $domain = shift || 'safe.mn';
 
     my $ua = __PACKAGE__->ua();
 
@@ -241,9 +240,9 @@ sub shorten {
     my $url             = $args{URL}    || croak("URL is required.\n");
     my $domain          = $args{DOMAIN} || 'safe.mn';
 
-    $self->{short}   = "http://$domain/api/?format=text&url=$url";
+    my $api  = "http://$domain/api/?format=text&url=$url";
 
-    $self->{response} = $self->{browser}->get($self->{short});
+    $self->{response} = $self->{browser}->get($api);
     return undef unless $self->{response}->is_success;;
 
     $self->{safeurl} = $self->{response}->{_content};
@@ -275,15 +274,51 @@ sub expand {
     my $url             = $args{URL}    || croak("URL is required.\n");
 
 
-    $self->{short}   = "http://safe.mn/api/?format=text&short_url=$url";
-    $self->{response} = $self->{browser}->get($self->{short});
+    my $api   = "http://safe.mn/api/?format=text&short_url=$url";
+    $self->{response} = $self->{browser}->get($api);
 
-    return undef unless $self->{response}->is_success;;
-    $self->{longurl} = $self->{response}->{_content};
+    return undef unless $self->{response}->is_success;
+    $self->{longurl} = $self->{response}->content;
     $self->{longurl} =~ s/\s//mg;
 
     return $self->{longurl};
 }
+
+=head2 info
+
+Get information bout a short link.
+
+=head3 Arguments
+
+=head4 URL
+
+B<Required>. Short URL to track
+
+    my $info = $safe->info(URL => "http://safe.mn/25");
+    print "number of cliks: ", $info->{clicks}, "\n";
+
+=back
+
+=back
+
+See http://safe.mn/api-doc/protocol#track-response for the list of fields returned: clicks, referers, countries, filetype, etc.
+
+=cut
+sub info {
+    my ($self, %args)   = @_;
+    my $url             = $args{URL}    || croak "URL is required.\n";
+
+
+    my $api   = "http://safe.mn/api/info?format=xml&url=$url";
+    $self->{response} = $self->{browser}->get($api);
+
+    return { } unless $self->{response}->is_success;
+
+    my $xml = XMLin($self->{response}->content, ForceArray => [qw/referers countries/]);
+    return $xml;
+}
+
+
 
 =head2 version
 
@@ -291,11 +326,17 @@ Gets the module version number
 
 =cut
 sub version {
-    my $self     = shift;
-    my($version) = shift;# not sure why $version isn't being set. need to look at it
+    my ($self, $version)     = @_;
+
     warn "Version $version is later then $WWW::Shorten::Safe::VERSION. It may not be supported" if (defined ($version) && ($version > $WWW::Shorten::Safe::VERSION));
     return $WWW::Shorten::Dafe::VERSION;
 }#version
+
+sub ua {
+    my ($self)  = @_;
+
+    return LWP::UserAgent->new();
+}
 
 
 =head1 AUTHOR
