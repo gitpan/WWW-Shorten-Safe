@@ -13,7 +13,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More'   => 0,
-        'WWW::Shorten' => 1.90,
+        'WWW::Shorten' => 3.00,
     },
     PREREQ_PRINT        => 1,
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

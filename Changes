@@ -8,3 +8,8 @@ Revision history for WWW-Shorten-Safemn
 
 1.20    Implement API info (http://safe.mn/api-doc/protocol#track-request)
 
+1.21    Fix minor typos in the documentation
+
+1.22	Fix seveal methods
+		Add unit tests
+

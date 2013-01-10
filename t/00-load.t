@@ -7,3 +7,4 @@ BEGIN {
 }
 
 diag( "Testing WWW::Shorten::Safe $WWW::Shorten::Safe::VERSION, Perl $], $^X" );
+

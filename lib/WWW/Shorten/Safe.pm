@@ -26,15 +26,15 @@ use vars qw( @ISA @EXPORT );
 
 =head1 NAME
 
-WWW::Shorten::Safe - Interface to shortening URLs using L<http://safe.mn/>, L<http://clic.gs/>, L<http://go2.gs/> or L<http://cliks.fr/>.
+WWW::Shorten::Safe - Interface to shortening URLs using http://safe.mn/, http://clic.gs/, http://go2.gs/ or http://cliks.fr/.
 
 =head1 VERSION
 
-$Revision: 1.20 $
+1.22
 
 =cut
 
-our $VERSION = '1.20';
+our $VERSION = '1.22';
 
 # ------------------------------------------------------------
 
@@ -64,6 +64,9 @@ or
     $safe->expand(URL => $safe->{safeurl});
     print "expanded/original URL is $safe->{longurl}\n";
 
+    my $info = $safe->info(URL => $safe->{safeurl});
+    print "number of clicks: ", $info->{clicks}, "\n";
+
 
 =head1 FUNCTIONS
 
@@ -82,9 +85,8 @@ Optional. User-Agent value.
 
     my $safe = WWW::Shorten::Safe->new(source => 'MyLibrary');
 
-default: perlteknatussafe by default
+default: perlteknatussafe
 
-=back
 
 =head4 domain
 
@@ -95,16 +97,13 @@ Optional. Domain of the short URL. Choose between safe.mn, clic.gs, go2.gs or cl
 
 default: safe.mn
 
-=back
-
-=back
-
 =cut
 sub new {
     my ($class, %args) = @_;
     $args{source} ||= "perlteknatussafe";
     $args{domain} ||= 'safe.mn';
 
+# 	print $args{domain}, "\n";
 
     my $safe = {
         browser => LWP::UserAgent->new(agent => $args{source}),
@@ -129,8 +128,6 @@ B<Required>. Long URL to shorten
 
     my $short = makeashorterlink("http://www.example.com/"); # http://safe.mn/25
 
-=back
-
 =head4 domain
 
 Optional. Domain of the short URL. Choose between safe.mn, clic.gs, go2.gs or cliks.fr.
@@ -138,10 +135,6 @@ Optional. Domain of the short URL. Choose between safe.mn, clic.gs, go2.gs or cl
     my $short = makeashorterlink("http://www.example.com/", "clic.gs"); # http://clic.gs/25
 
 safe.mn by default
-
-=back
-
-=back
 
 =cut
 sub makeashorterlink #($;%)
@@ -176,10 +169,6 @@ B<Required>. Short URL to shorten
 
     my $long = makealongerlink("http://clic.gs/25"); # "http://www.example.com/"
 
-=back
-
-=back
-
 =cut
 sub makealongerlink #($,%)
 {
@@ -201,7 +190,7 @@ sub makealongerlink #($,%)
 
 =head2 shorten
 
-Shorten a URL using http://safe.mn/, http://clic.hs/, http://go2.gs/ or http://cliks.fr/.
+Shorten a URL using http://safe.mn/, http://clic.gs/, http://go2.gs/ or http://cliks.fr/.
 Calling the shorten method will return the shortened URL but will also store it in safe.mn object until the next call is made.
 
     my $url = "http://www.example.com/";
@@ -220,8 +209,6 @@ B<Required>. Long URL to shorten
 
     my $short = $safe->shorten(URL => "http://www.example.com/"); # http://safe.mn/25
 
-=back
-
 =head4  DOMAIN
 
 Optional. Domain of the short URL. Choose between safe.mn, clic.gs, go2.gs or cliks.fr.
@@ -230,17 +217,14 @@ Optional. Domain of the short URL. Choose between safe.mn, clic.gs, go2.gs or cl
 
 safe.mn by default
 
-=back
-
-=back
-
 =cut
 sub shorten {
     my ($self, %args)   = @_;
     my $url             = $args{URL}    || croak("URL is required.\n");
-    my $domain          = $args{DOMAIN} || 'safe.mn';
+    my $domain          = $args{DOMAIN} || $self->{domain}	|| 'safe.mn';
 
     my $api  = "http://$domain/api/?format=text&url=$url";
+# 	print $api, "\n";
 
     $self->{response} = $self->{browser}->get($api);
     return undef unless $self->{response}->is_success;;
@@ -263,10 +247,6 @@ Expands a shortened safe.mn URL to the original long URL.
 B<Required>. Long URL to shorten
 
     my $long = $safe->expand(URL => "http://safe.mn/25"); # http://www.example.com/
-
-=back
-
-=back
 
 =cut
 sub expand {
@@ -295,11 +275,7 @@ Get information bout a short link.
 B<Required>. Short URL to track
 
     my $info = $safe->info(URL => "http://safe.mn/25");
-    print "number of cliks: ", $info->{clicks}, "\n";
-
-=back
-
-=back
+    print "number of clicks: ", $info->{clicks}, "\n";
 
 See http://safe.mn/api-doc/protocol#track-response for the list of fields returned: clicks, referers, countries, filetype, etc.
 
@@ -329,7 +305,7 @@ sub version {
     my ($self, $version)     = @_;
 
     warn "Version $version is later then $WWW::Shorten::Safe::VERSION. It may not be supported" if (defined ($version) && ($version > $WWW::Shorten::Safe::VERSION));
-    return $WWW::Shorten::Dafe::VERSION;
+    return $WWW::Shorten::Safe::VERSION;
 }#version
 
 sub ua {
@@ -378,7 +354,7 @@ L<http://search.cpan.org/dist/WWW-Shorten-Safe/>
 =back
 
 
-=head1 ACKNOWLEDGEMENTS
+=head1 ACKNOWLEDGMENTS
 
 =over
 
@@ -413,7 +389,7 @@ NECESSARY SERVICING, REPAIR, OR CORRECTION.
 
 IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
 WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
-REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
+REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENSE, BE
 LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
 OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
 THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
